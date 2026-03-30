@@ -2,6 +2,7 @@
   "name": "www_f1dg3t",
   "version": "1.0.0",
   "private": true,
+  "homepage": "https://F1dg3tXD.github.io/WWW_F1dg3t",
   "description": "Profile JSON editor with filesystem and GitHub save modes",
   "scripts": {
     "start": "node server.js",
