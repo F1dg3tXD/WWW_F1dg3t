@@ -1,0 +1,17 @@
+{
+  "name": "www_f1dg3t",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Profile JSON editor with filesystem and GitHub save modes",
+  "homepage": "https://[your-github-username].github.io/[repo-name]",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check main.js && node --check server.js && node --check scripts/build-static.js",
+    "build": "node scripts/build-static.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.1.1"
+  }
+}
