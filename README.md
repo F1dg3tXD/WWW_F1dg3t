@@ -2,64 +2,31 @@
 
 Dashboard for f1dg3t to update status.
 
-## Features
+## What works now
 
 - Loads current profile from `data.json` (or `/api/data` when server is running).
 - Saves profile to the real filesystem via `PUT /api/data` when running locally with Node.
 - Supports static hosting (such as GitHub Pages) using GitHub's Contents API to write `data.json` back to your repo.
-- Keeps a local browser backup in `localStorage`.
+- Always keeps a local browser backup in `localStorage`.
 
-## Local runtime (real filesystem writes)
+## Run locally (filesystem write mode)
 
 ```bash
 npm start
 ```
 
-Open http://localhost:3000 and click **Save** to write directly to `data.json` on disk through `/api/data`.
+Then open http://localhost:3000.
 
-## GitHub Pages setup (following the Node.js GitHub Pages deployment guide)
+In this mode, the **Save** button writes directly to the repo's `data.json` file on disk.
 
-This repo is configured with:
+## Static hosting mode (GitHub Pages)
 
-- `homepage` in `package.json`
-- `build`, `predeploy`, and `deploy` scripts
-- `gh-pages` dev dependency
-- an optional workflow at `.github/workflows/deploy-pages.yml`
+Because static hosts cannot write files directly, configure these settings in the app:
 
-### 1) Update homepage
+- **Save Mode**: `GitHub API only` (or `Auto`)
+- **GitHub Repo**: `owner/repo`
+- **GitHub Branch**: e.g. `main`
+- **File Path**: `data.json`
+- **GitHub Token**: Fine-grained PAT with `Contents: Read and write`
 
-In `package.json`, replace:
-
-```json
-"homepage": "https://[your-github-username].github.io/[repo-name]"
-```
-
-with your actual GitHub username and repository name.
-
-### 2) Install and deploy
-
-```bash
-npm install
-npm run deploy
-```
-
-This publishes the static app from `build/` to the `gh-pages` branch.
-
-### 3) Configure repository Pages source
-
-In your GitHub repo:
-
-1. Go to **Settings → Pages**
-2. Set **Source** to deploy from branch
-3. Select branch `gh-pages` and folder `/ (root)`
-
-Your app will be available at:
-
-```text
-https://<your-github-username>.github.io/<repo-name>
-```
-
-## Notes for static hosting mode
-
-Because GitHub Pages is static-only, direct filesystem writes are not possible there.
-Use the app's **Save Mode** `GitHub API only` (or `Auto`) and provide a token with **Contents: Read and write** so the app can commit updates to `data.json` via GitHub API.
+Click **Save** and the app will commit updated JSON using GitHub's API.
