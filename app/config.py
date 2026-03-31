@@ -8,3 +8,4 @@ class Config:
     PASSWORD = os.getenv("PASSWORD")
     DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
     DATA_URL = os.getenv("DATA_URL")
+    MAILTO = os.getenv("MAILTO")

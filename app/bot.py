@@ -67,3 +67,13 @@ async def why(interaction: discord.Interaction):
 async def what(interaction: discord.Interaction):
     data = get_data()
     await interaction.response.send_message(f"📌 What: {data['what']}")
+
+@client.tree.command(name="email")
+async def email(interaction: discord.Interaction):
+    if not Config.MAILTO:
+        await interaction.response.send_message("MAILTO is not configured.", ephemeral=True)
+        return
+
+    view = discord.ui.View()
+    view.add_item(discord.ui.Button(label="Open Email", url=Config.MAILTO))
+    await interaction.response.send_message("Click the button to open your email client.", view=view, ephemeral=True)
