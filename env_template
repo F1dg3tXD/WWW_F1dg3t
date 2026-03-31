@@ -2,3 +2,4 @@ SECRET_KEY=secret key
 PASSWORD=password
 DISCORD_TOKEN=your bot token here
 DATA_URL=https://path/to/data.json
+MAILTO=example@email.com
