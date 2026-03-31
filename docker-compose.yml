@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: f1dg3t_web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - ./data.json:/app/data.json
+
+  bot:
+    build: .
+    container_name: f1dg3t_bot
+    restart: unless-stopped
+    command: ["python", "run_bot.py"]
+    env_file:
+      - .env
+    depends_on:
+      - web

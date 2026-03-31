@@ -1,0 +1,6 @@
+flask
+discord.py
+requests
+astral
+python-dotenv
+gunicorn

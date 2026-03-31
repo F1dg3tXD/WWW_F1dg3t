@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+  <h2>WWW_F1dg3t Control Panel</h2>
+
+  <form method="POST">
+    <label>Timezone</label>
+    <input name="timezone" value="{{ data.get('timezone','') }}">
+
+    <label>Location</label>
+    <input name="location" value="{{ data.get('location','') }}">
+
+    <label>Why</label>
+    <input name="why" value="{{ data.get('why','') }}">
+
+    <label>What</label>
+    <input name="what" value="{{ data.get('what','') }}">
+
+    <button type="submit">Save</button>
+  </form>
+
+  <button onclick="autoFill()" class="secondary">Auto Detect</button>
+</div>
+
+<script>
+async function autoFill() {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  document.querySelector('[name="timezone"]').value = timezone;
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        const data = await res.json();
+
+        const location =
+          data.address.city ||
+          data.address.town ||
+          data.address.village ||
+          data.address.state ||
+          "Unknown";
+
+        document.querySelector('[name="location"]').value = location;
+      } catch (e) {}
+    });
+  }
+}
+</script>
+
+</body>
+</html>
