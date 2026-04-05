@@ -97,8 +97,19 @@ async def email(interaction: discord.Interaction):
         else f"mailto:{mailto_value}"
     )
 
+    try:
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(label="Email", url=mailto_url))
+    except Exception:
+        await interaction.followup.send(
+            "Email button configuration error: Config.MAILTO must be a valid email "
+            "address or a mailto: URL.",
+            ephemeral=True
+        )
+        return
+
     await interaction.followup.send(
-        f"# [EMAIL]({mailto_url})\n"
-        "Click above to open email client.",
+        "Use the button below to open your email client.",
+        view=view,
         ephemeral=True
     )
