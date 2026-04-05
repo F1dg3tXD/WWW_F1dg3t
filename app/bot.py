@@ -81,35 +81,7 @@ async def what(interaction: discord.Interaction):
 
 @client.tree.command(name="email")
 async def email(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-
-    mailto_value = (Config.MAILTO or "").strip()
-    if not mailto_value:
-        await interaction.followup.send(
-            "Email link is not configured on this bot. Please set Config.MAILTO.",
-            ephemeral=True
-        )
-        return
-
-    mailto_url = (
-        mailto_value
-        if mailto_value.startswith("mailto:")
-        else f"mailto:{mailto_value}"
-    )
-
-    try:
-        view = discord.ui.View()
-        view.add_item(discord.ui.Button(label="Email", url=mailto_url))
-    except Exception:
-        await interaction.followup.send(
-            "Email button configuration error: Config.MAILTO must be a valid email "
-            "address or a mailto: URL.",
-            ephemeral=True
-        )
-        return
-
-    await interaction.followup.send(
-        "Use the button below to open your email client.",
-        view=view,
-        ephemeral=True
+    await interaction.response.send_message(
+        f"# (EMAIL)[mailto:{Config.MAILTO}]\n"
+        "Click above to open email client."
     )
