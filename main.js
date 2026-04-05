@@ -8,59 +8,25 @@ const DEFAULT_DATA = {
 const STORAGE_KEY = "profileJsonData";
 const SETTINGS_KEY = "profileJsonSettings";
 
-const TIMEZONES = [
+const FALLBACK_TIMEZONES = [
   "Pacific/Honolulu",
   "America/Anchorage",
   "America/Los_Angeles",
   "America/Denver",
   "America/Chicago",
   "America/New_York",
-  "America/Sao_Paulo",
   "Europe/London",
   "Europe/Berlin",
-  "Europe/Moscow",
-  "Asia/Dubai",
   "Asia/Kolkata",
-  "Asia/Shanghai",
   "Asia/Tokyo",
   "Australia/Sydney",
 ];
 
-const LOCATIONS = [
-  "Somewhere",
-  "Los Angeles, USA",
-  "San Francisco, USA",
-  "Seattle, USA",
-  "Vancouver, Canada",
-  "Denver, USA",
-  "Chicago, USA",
-  "New York, USA",
-  "Toronto, Canada",
-  "Mexico City, Mexico",
-  "São Paulo, Brazil",
-  "Buenos Aires, Argentina",
-  "London, UK",
-  "Paris, France",
-  "Berlin, Germany",
-  "Amsterdam, Netherlands",
-  "Madrid, Spain",
-  "Rome, Italy",
-  "Johannesburg, South Africa",
-  "Nairobi, Kenya",
-  "Cairo, Egypt",
-  "Dubai, UAE",
-  "Riyadh, Saudi Arabia",
-  "Mumbai, India",
-  "Delhi, India",
-  "Singapore, Singapore",
-  "Hong Kong, China",
-  "Shanghai, China",
-  "Tokyo, Japan",
-  "Seoul, South Korea",
-  "Sydney, Australia",
-  "Melbourne, Australia",
-  "Auckland, New Zealand",
-];
+const TIMEZONES = getAllTimezones();
+const LOCATIONS = getAllLocations(TIMEZONES);
+
+let filteredTimezones = [...TIMEZONES];
+let filteredLocations = [...LOCATIONS];
 
 let currentData = { ...DEFAULT_DATA };
 
@@ -83,9 +49,37 @@ document.addEventListener("DOMContentLoaded", () => {
   render();
 });
 
+function getAllTimezones() {
+  if (Intl.supportedValuesOf) {
+    return Intl.supportedValuesOf("timeZone").slice().sort((a, b) => a.localeCompare(b));
+  }
+
+  return [...FALLBACK_TIMEZONES];
+}
+
+function getAllLocations(timezones) {
+  const locations = new Set(["Somewhere"]);
+
+  for (const timezone of timezones) {
+    const parts = timezone.split("/");
+    if (parts.length < 2) {
+      continue;
+    }
+
+    const region = parts[0].replace(/_/g, " ");
+    const city = parts.slice(1).join(" / ").replace(/_/g, " ");
+    locations.add(`${city}, ${region}`);
+  }
+
+  return [...locations].sort((a, b) => a.localeCompare(b));
+}
+
 function cacheDom() {
   dom.timezoneSelect = document.getElementById("timezoneSelect");
+  dom.timezoneSearch = document.getElementById("timezoneSearch");
   dom.locationSelect = document.getElementById("locationSelect");
+  dom.locationSearch = document.getElementById("locationSearch");
+  dom.locationCustomInput = document.getElementById("locationCustomInput");
   dom.whyInput = document.getElementById("whyInput");
   dom.whatInput = document.getElementById("whatInput");
   dom.jsonPreview = document.getElementById("jsonPreview");
@@ -103,18 +97,51 @@ function cacheDom() {
 }
 
 function initSelects() {
-  fillSelect(dom.timezoneSelect, TIMEZONES);
-  fillSelect(dom.locationSelect, LOCATIONS);
+  filterTimezoneOptions("");
+  filterLocationOptions("");
 }
 
 function fillSelect(selectEl, values) {
   selectEl.innerHTML = "";
+
   values.forEach((value) => {
     const opt = document.createElement("option");
     opt.value = value;
     opt.textContent = value;
     selectEl.appendChild(opt);
   });
+}
+
+function filterTimezoneOptions(query) {
+  const normalized = query.trim().toLowerCase();
+  filteredTimezones = TIMEZONES.filter((timezone) => timezone.toLowerCase().includes(normalized));
+
+  if (currentData.timezone && !filteredTimezones.includes(currentData.timezone)) {
+    filteredTimezones = [currentData.timezone, ...filteredTimezones];
+  }
+
+  fillSelect(dom.timezoneSelect, filteredTimezones);
+
+  if (currentData.timezone) {
+    dom.timezoneSelect.value = currentData.timezone;
+  }
+}
+
+function filterLocationOptions(query) {
+  const normalized = query.trim().toLowerCase();
+  filteredLocations = LOCATIONS.filter((location) => location.toLowerCase().includes(normalized));
+
+  if (currentData.location && !filteredLocations.includes(currentData.location)) {
+    filteredLocations = [currentData.location, ...filteredLocations];
+  }
+
+  fillSelect(dom.locationSelect, filteredLocations);
+
+  if (currentData.location && filteredLocations.includes(currentData.location)) {
+    dom.locationSelect.value = currentData.location;
+  } else {
+    dom.locationSelect.selectedIndex = 0;
+  }
 }
 
 function loadSettings() {
@@ -199,33 +226,62 @@ async function loadFromFile() {
 }
 
 function applyDataToForm() {
-  ensureOption(dom.timezoneSelect, currentData.timezone);
-  ensureOption(dom.locationSelect, currentData.location);
+  if (!currentData.timezone || !TIMEZONES.includes(currentData.timezone)) {
+    currentData.timezone = currentData.timezone || DEFAULT_DATA.timezone;
+  }
 
+  dom.timezoneSearch.value = "";
+  filterTimezoneOptions("");
   dom.timezoneSelect.value = currentData.timezone;
-  dom.locationSelect.value = currentData.location;
+
+  dom.locationSearch.value = "";
+  filterLocationOptions("");
+
+  if (LOCATIONS.includes(currentData.location)) {
+    dom.locationSelect.value = currentData.location;
+    dom.locationCustomInput.value = "";
+  } else {
+    dom.locationCustomInput.value = currentData.location ?? "";
+  }
+
   dom.whyInput.value = currentData.why ?? "";
   dom.whatInput.value = currentData.what ?? "";
 }
 
-function ensureOption(select, value) {
-  const exists = Array.from(select.options).some((o) => o.value === value);
-  if (!exists && value != null && `${value}`.trim() !== "") {
-    const opt = document.createElement("option");
-    opt.value = value;
-    opt.textContent = value;
-    select.appendChild(opt);
-  }
-}
-
 function bindEvents() {
+  dom.timezoneSearch.addEventListener("input", () => {
+    filterTimezoneOptions(dom.timezoneSearch.value);
+  });
+
+  dom.locationSearch.addEventListener("input", () => {
+    filterLocationOptions(dom.locationSearch.value);
+  });
+
   dom.timezoneSelect.addEventListener("change", () => {
     currentData.timezone = dom.timezoneSelect.value;
     render();
   });
 
   dom.locationSelect.addEventListener("change", () => {
-    currentData.location = dom.locationSelect.value;
+    const selected = dom.locationSelect.value;
+    currentData.location = selected;
+
+    if (LOCATIONS.includes(selected)) {
+      dom.locationCustomInput.value = "";
+    }
+
+    render();
+  });
+
+  dom.locationCustomInput.addEventListener("input", () => {
+    const customValue = dom.locationCustomInput.value.trim();
+
+    if (customValue) {
+      currentData.location = customValue;
+    } else if (dom.locationSelect.value) {
+      currentData.location = dom.locationSelect.value;
+    }
+
     render();
   });
 
@@ -279,9 +335,7 @@ function handleAutoDetect() {
       applyTimezoneFromBrowser();
       const { latitude, longitude } = pos.coords;
       const loc = guessLocationZone(latitude, longitude);
-      ensureOption(dom.locationSelect, loc);
-      dom.locationSelect.value = loc;
-      currentData.location = loc;
+      applyDetectedLocation(loc);
       render();
       resetAutoButton();
     },
@@ -293,13 +347,25 @@ function handleAutoDetect() {
   );
 }
 
+function applyDetectedLocation(location) {
+  currentData.location = location;
+
+  if (LOCATIONS.includes(location)) {
+    dom.locationCustomInput.value = "";
+    filterLocationOptions(dom.locationSearch.value);
+    dom.locationSelect.value = location;
+  } else {
+    dom.locationCustomInput.value = location;
+  }
+}
+
 function applyTimezoneFromBrowser() {
   try {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (tz) {
-      ensureOption(dom.timezoneSelect, tz);
-      dom.timezoneSelect.value = tz;
       currentData.timezone = tz;
+      filterTimezoneOptions(dom.timezoneSearch?.value || "");
+      dom.timezoneSelect.value = tz;
       render();
     }
   } catch {
