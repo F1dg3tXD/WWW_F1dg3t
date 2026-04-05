@@ -111,6 +111,18 @@ textarea {
   resize: none;
 }
 
+#timezoneSearch,
+#locationSearch,
+#locationCustomInput {
+  margin-bottom: 2px;
+}
+
+#timezoneSelect,
+#locationSelect {
+  max-height: 180px;
+}
+
+
 .inline-group {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
